@@ -294,7 +294,7 @@ The sample passes when all of these hold:
 
 1. **Narrator.** Decided 2026-09-28: a synthetic voice, ElevenLabs George at speed 0.9 (see Sound).
 2. **Music.** Commission the series motif now, or use a temporary track for the sample?
-3. **Large files.** Git LFS in this public repository, or external storage for `.blend` files, audio, and renders?
+3. **Large files.** Git LFS in this repository, or external storage for `.blend` files, audio, and renders?
 4. **License.** The repository has none yet, so all rights are reserved by default. Choose one before accepting outside contributions.
 
 ## References
