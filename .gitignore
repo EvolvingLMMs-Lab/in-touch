@@ -1,0 +1,4 @@
+# Generated audio stays out of git until we decide where large files live.
+episodes/*/sample/audio/
+.DS_Store
+__pycache__/
