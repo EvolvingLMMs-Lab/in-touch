@@ -2,3 +2,6 @@
 episodes/*/sample/audio/
 .DS_Store
 __pycache__/
+.venv/
+episodes/*/sample/frames/
+episodes/*/sample/renders/

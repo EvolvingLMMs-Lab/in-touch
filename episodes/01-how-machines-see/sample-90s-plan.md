@@ -217,16 +217,21 @@ This is the hardest shot. The floating image is a 2D layer, not a Blender object
 
 The image never passes through Blender's color management, so its last frame matches Manim's first frame pixel for pixel. Manim then starts from the same PNG at the same rectangle and does the snap to 224×224. Check it with a difference blend. Fallback: cut on a fast move with a cross-dissolve of 4–6 frames.
 
-### Files in this repository (created when production starts)
+### Files in this repository
 
 ```
 episodes/01-how-machines-see/sample/
-  manim/     one module per shot group, e.g. s01_s02_cold_open.py
-  blender/   world scene and the frustum-corner export script
-  frames/    the locked machine-view still, the 224×224 model input, and their hashes
-  audio/     voice, music, and effect stems
-  edit/      editor project and an EDL or OTIO export
+  prep_still.py  builds the still, the machine view, and the 224×224 input (draft 1: an AI placeholder)
+  draft/         render_draft.py: the P1 animatic, locked to the voice track
+  manim/         (P3) one module per shot group, e.g. s01_s02_cold_open.py
+  blender/       (P3) world scene and the frustum-corner export script
+  frames/        the machine-view still, the 224×224 model input, and their hashes
+  audio/         voice, music, and effect stems
+  renders/       draft and review renders
+  edit/          (P5) editor project and an EDL or OTIO export
 ```
+
+`frames/`, `audio/`, and `renders/` stay out of git until the large-file decision is made.
 
 Renders stay out of git. Before the first render, decide where `.blend` files and audio live (see open decisions).
 
@@ -244,6 +249,24 @@ Estimates are for one generalist animator plus a part-time composer.
 | P5 · Assemble and review | Edit, light grade (match the world's whites to `paper`), and mix. Run the review below. | Sign-off, or a fix list. | 1–2 days |
 
 Total: about two to three weeks for one person, plus the composer.
+
+### Draft 1 (2026-09-28)
+
+The P1 animatic exists: `sample/renders/sample-draft-1.mp4`, 90.0 s, 1920×1080, 30 fps, with the George voice track (outside git). Rebuild it from the repo root:
+
+```
+.venv/bin/python episodes/01-how-machines-see/sample/prep_still.py
+.venv/bin/python episodes/01-how-machines-see/sample/draft/render_draft.py
+```
+
+Picture cues follow the voice track's word timestamps (ElevenLabs Scribe v2 through fal). The draft departs from this plan in four ways:
+
+- **World.** One AI-generated still (Nano Banana Pro through fal, seed 11) moved in 2.5D, in place of the Blender grey-box. The machine view is cropped 1:1 from the same still, so S2 → S3 stays continuous.
+- **Renderer.** A small pycairo script instead of Manim. Manim's Cairo renderer resizes every image to its on-screen size, which makes the 50× pixel zoom in S4 and the 196 moving patches in S5 impractical.
+- **Fonts.** Helvetica Neue and Menlo (system fonts), not Inter and JetBrains Mono.
+- **Sound.** Voice only. Music and effects come in P4.
+
+The rim patch is row 6, column 8 (slot 93), picked by eye. The two-of-three-people test has not been run.
 
 ## Review
 
