@@ -416,11 +416,11 @@
 
 `ILLUSTRATION` · 9:57–10:27
 
-**Visual.** Three stacks of photos of growing height, labeled 1.3 million, 14 million, and 303 million. Beside them, a schematic comparison: ViT a little behind the convolutional networks with the smallest stack, and ahead with the larger ones. Caption: "Schematic. Results: paper, Figs. 3–4."
+**Visual.** Three stacks of photos of growing height, labeled 1.3 million, 14 million, and 303 million. Beside them, a schematic comparison: ViT a little behind the convolutional networks with the smallest stack, level with the middle one, and ahead with the largest. Caption: "Schematic. Results: paper, Figs. 3–4."
 
 **Narration.**
 
-> And ViT needed a lot of pictures. Trained on ImageNet's 1.3 million images alone, it came in a few points behind the convolutional networks of its day. With bigger datasets, 14 million images and then 300 million, it pulled ahead.
+> And ViT needed a lot of pictures. Trained on ImageNet's 1.3 million images alone, it came in a few points behind the convolutional networks of its day. With 14 million images, it caught up. With 300 million, it pulled ahead.
 >
 > The paper's own summary: large-scale training trumps inductive bias. A convolutional network comes with assumptions about images built in. ViT has to learn most of them from examples.
 
@@ -511,7 +511,7 @@ Every `MEASURED` shot comes from a script run on the public checkpoint. Keep the
 | Attention distance varies widely across heads in low layers and grows with depth; most heads attend widely in the second half | 4.7 | [1] §4.5, Fig. 7 (right), App. D.7; to confirm with M3 |
 | CNNs build in locality; in ViT only the MLP layers are local, and self-attention is global | 4.7, 5.3 | [1] §3.1 ("Inductive bias") |
 | A learnable class token is prepended; its final state is read by the classification head | 5.1 | [1] §3.1, Eq. 4 |
-| On ImageNet (1.3M images) without strong regularization, ViT is a few points below comparable ResNets; with larger datasets (ImageNet-21k, 14M; JFT, 303M) it overtakes them | 5.3 | [1] §1, §4.1 (datasets), §4.3, Figs. 3–4 |
+| On ImageNet (1.3M images) without strong regularization, ViT is a few points below comparable ResNets; with ImageNet-21k (14M) it catches up, and with JFT (303M) it pulls ahead | 5.3 | [1] §1, §4.1 (datasets), §4.3, Figs. 3–4, Table 2 caption |
 | "Large scale training trumps inductive bias" | 5.3 | [1] §1 |
 | The checkpoint outputs one of 1,000 ImageNet labels | 5.4 | [3] |
 
