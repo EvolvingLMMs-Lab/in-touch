@@ -41,6 +41,8 @@ Later chapters: *Learning to Predict* and *Learning to Act*.
 
 Planned: [Manim Community](https://www.manim.community/) v0.21.0 for the computation layer (patches, vectors, attention, formulas) and [Blender](https://www.blender.org/) 5.2 LTS for the world (the table scene, camera moves, materials). Versions are pinned per episode.
 
+Narration uses a synthetic voice. [`tools/narrate.py`](tools/narrate.py) builds a sample's voice track straight from its plan, using text-to-speech models served by [fal](https://fal.ai/), and checks every clip word for word against the text.
+
 ## Repository layout
 
 ```
@@ -49,7 +51,11 @@ episodes/
   01-how-machines-see/
     script.md              Episode 1 script: narration, visuals, sound, tags, sources
     sample-90s-plan.md     Plan for the 90-second style sample, cut from Episode 1
+tools/
+  narrate.py               Builds a synthetic voice track for a sample from its plan
 ```
+
+Generated audio (`episodes/*/sample/audio/`) stays out of git for now.
 
 ## Status
 

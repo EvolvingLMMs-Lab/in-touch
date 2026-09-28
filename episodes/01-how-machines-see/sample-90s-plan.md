@@ -35,21 +35,23 @@ Eight shots. The durations add up to 90 seconds.
 
 ## Narration
 
-168 words. At about 155 words per minute that is 65 seconds of speech, which leaves 25 seconds of picture and music. Every line comes from the script. Some lines drop a phrase, and no line is new.
+163 words. At about 155 words per minute that is 63 seconds of speech, which leaves 27 seconds of picture and music. Every line comes from the script. Some lines drop a phrase, and no line is new.
 
-> **S1.** Look at this small square. Can you tell what it is? *(pause)* A curve. A bit of blue, a bit of white. Maybe a shadow.
+Times in parentheses are silences. A marker at the start of a shot is the wait before the voice comes in; a marker inside a line is a pause. [`tools/narrate.py`](../../tools/narrate.py) reads this block and the cut table to build the voice track.
+
+> **S1.** *(1 s)* Look at this small square. Can you tell what it is? *(pause, 1.5 s)* A curve. A bit of blue, a bit of white. Maybe a shadow.
 >
-> **S2.** Now let the rest of the picture back in. *(the rings return)* It's the rim of a cup. Nothing inside that square changed. What changed is everything around it.
+> **S2.** *(0.5 s)* Now let the rest of the picture back in. *(the rings return, 3 s)* It's the rim of a cup. Nothing inside that square changed. What changed is everything around it.
 >
-> **S3.** This is our machine. For now, it has one sense: a camera.
+> **S3.** *(2.5 s, the machine comes into view)* This is our machine. For now, it has one sense: a camera.
 >
-> **S4.** The machine doesn't receive a cup. It receives this: a grid of pixels, and for each pixel, three numbers. How much red, how much green, how much blue.
+> **S4.** *(0.5 s)* The machine doesn't receive a cup. It receives this: a grid of pixels, and for each pixel, three numbers. How much red, how much green, how much blue.
 >
-> **S5.** Cut the picture into squares. Then line them up, left to right, top to bottom, the way you'd read words on a page.
+> **S5.** *(0.5 s)* Cut the picture into squares. Then line them up, left to right, top to bottom, the way you'd read words on a page.
 >
-> **S6.** Every patch goes through the same matrix. One recipe, applied 196 times. So far, each vector knows only its own small square.
+> **S6.** *(0.5 s)* Every patch goes through the same matrix. So far, each vector knows only its own small square.
 >
-> **S7.** How does it get the context you used? It asks. *(six seconds, no narration)* This position still stands for a small piece of the cup's rim. But what it carries now includes the rest of the picture.
+> **S7.** *(0.5 s)* How does it get the context you used? It asks. *(6 s, no narration)* This position still stands for a small piece of the cup's rim. But what it carries now includes the rest of the picture.
 
 If the recorded read runs long, cut words. Keep the silent beat in S7.
 
@@ -100,7 +102,7 @@ Each shot lists the brief's five fields: the viewer's question, narration, visua
 ### S6 · 0:58–1:07 · One recipe, applied 196 times
 
 - **Viewer's question.** What does the model do with each square?
-- **Narration.** "Every patch goes through the same matrix. One recipe, applied 196 times. So far, each vector knows only its own small square."
+- **Narration.** "Every patch goes through the same matrix. So far, each vector knows only its own small square."
 - **Visual.** The rim patch unrolls into a long column of numbers, meets a matrix labeled **E**, and comes out as a stack of 8 shaded cells. Caption: "Drawn with 8 numbers. ViT-Base uses 768." A quick ripple as every other patch does the same. Each vector ends up standing beside its patch on a thin tether.
 - **Sound.** One soft stamp when the rim vector forms, then a quiet swell for the ripple, not one click per patch.
 - **Technical basis.** One shared linear projection **E** [1, Eq. 1]. The input column has 768 numbers (16 × 16 × 3). Do not animate **E** as a pass-through.
@@ -162,7 +164,24 @@ A small `ink-2` label at the bottom left: "Illustration · …", "Measured · ch
 - **Motif.** A short series motif of about four notes. It changes timbre with each sense in later episodes. The sample uses it twice: its first statement in S3, and a variation with a grainy texture that resolves in S7 and rings out in S8.
 - **Effects only on state changes.** Ring returns, the image lifting out, the snap to pixels, slicing, the vector forming, the query, and the merge. Never one sound per token.
 - **Mix.** The narration must be clear on laptop speakers. Music ducks about 8–10 dB under the voice. Master to −14 LUFS integrated, true peak at or below −1 dBTP.
-- **Voice.** Record at 48 kHz, 24-bit WAV, in a quiet room, with two or three takes per line. A scratch read in any voice is enough for the animatic.
+- **Voice.** A synthetic voice (decided 2026-09-28). [`tools/narrate.py`](../../tools/narrate.py) builds the voice track from the Narration block: one clip per segment, trimmed, placed on the cut, loudness-matched, and checked word for word with speech-to-text. To change a line, edit the Narration block and rebuild; unchanged clips come from the cache.
+
+### Voice takes (2026-09-28)
+
+Six takes of the same narration, each a full 90-second track at −16 LUFS. Every clip passed the word check (ElevenLabs Scribe v2 transcript against the text). "Tight shots" are shots where the voice ends less than 0.25 s before the cut.
+
+| Take | Engine | Voice | Pace | Tight shots |
+|---|---|---|---|---|
+| `elevenlabs-george` | ElevenLabs Multilingual v2, speed 1.0 | George (male, British) | 193 wpm | none |
+| `elevenlabs-george-0.9` | ElevenLabs Multilingual v2, speed 0.9 | George | 166 wpm | S1 (0.1 s) |
+| `elevenlabs-matilda` | ElevenLabs Multilingual v2, speed 1.0 | Matilda (female, American) | 186 wpm | none |
+| `elevenlabs-matilda-0.9` | ElevenLabs Multilingual v2, speed 0.9 | Matilda | 174 wpm | none |
+| `gemini-charon` | Gemini 3.8 Flash TTS, style instructions | Charon (male) | 156 wpm | S1 (−0.1 s), S7 (0.0 s) |
+| `minimax-graceful-lady` | MiniMax Speech 2.8 HD, speed 1.0 | English_Graceful_Lady (female) | 141 wpm | S1, S2, S4, S5, S7 (−0.9 to 0.1 s) |
+
+- All three engines run through fal. fal's model catalog lists each of them with a commercial license, and fal's terms say the model providers' own terms may also apply.
+- S6 dropped "One recipe, applied 196 times." Every take overran S6 with it: the number alone is five spoken words ("a hundred and ninety-six").
+- Once a take is picked, record its engine, voice, and settings here. The files live under `sample/audio/narration/`, outside git.
 
 ## Build
 
@@ -212,7 +231,7 @@ Estimates are for one generalist animator plus a part-time composer.
 | Phase | Work | Exit criteria | Estimate |
 |---|---|---|---|
 | P0 · Lock | Lock the narration above. Sketch the machine-view composition. | Narration locked. | 0.5 day |
-| P1 · Animatic | Scratch read. Manim blockout at low quality with placeholder colors. Blender grey-box of the table and the machine camera. Cut to the scratch read. | Runs 90 s ± 2 s. Every line has its visual. The silent beat is intact. Review with Brian: story and timing. | 1–2 days |
+| P1 · Animatic | The picked synthetic take as the voice track. Manim blockout at low quality with placeholder colors. Blender grey-box of the table and the machine camera. Cut to the voice track. | Runs 90 s ± 2 s. Every line has its visual. The silent beat is intact. Review with Brian: story and timing. | 1–2 days |
 | P2 · Lookdev | Materials and light. Render the final machine-view still, and pick and test the rim patch. Three hero stills: the machine view, the wide world, and a close-up of the cup. Palette check on three Manim frames. | Brian approves the stills and palette. The still and the 224×224 input are locked, with hashes. | 2–3 days |
 | P3 · Build | Final Manim shots S1, S2, S4 (second half), and S5–S8. Blender shots S3 and S4 (first half). Handoffs A and B. | Both difference-blend checks pass. | 4–6 days |
 | P4 · Sound | Motif sketch, effects pass, and the final voice. Starts once P1 locks the timing and runs alongside P3. | Mixed to target loudness. | 2–3 days |
@@ -238,7 +257,7 @@ The sample passes when all of these hold:
 
 ## Open decisions
 
-1. **Narrator.** Brian, a hired narrator, or a synthetic voice? The scratch read can start without this decision. The final voice sets the final timing.
+1. **Narrator.** A synthetic voice (decided 2026-09-28). Pick one of the voice takes above; the picked take sets the final timing.
 2. **Music.** Commission the series motif now, or use a temporary track for the sample?
 3. **Large files.** Git LFS in this public repository, or external storage for `.blend` files, audio, and renders?
 4. **License.** The repository has none yet, so all rights are reserved by default. Choose one before accepting outside contributions.
