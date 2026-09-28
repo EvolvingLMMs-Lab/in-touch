@@ -10,8 +10,8 @@ episodes/01-how-machines-see/sample-90s-plan.md):
   Example: "> **S1.** *(1 s)* Look at this small square. *(pause, 1.5 s)* A curve."
 
 For each text segment it asks the chosen engine for speech, trims the silence at both
-ends, and places the clip at its shot start plus the lead-in, with the marked pauses in
-between. It then loudness-matches the whole track, writes WAV and M4A files, transcribes
+ends, levels the clip to a common loudness, and places it at its shot start plus the
+lead-in, with the marked pauses in between. It then loudness-matches the whole track, writes WAV and M4A files, transcribes
 every clip to check that the spoken words match the text, and writes a timing report.
 
 Engines, all served by fal (the key comes only from the FAL_KEY environment variable):
@@ -57,6 +57,7 @@ from pathlib import Path
 
 RATE = 48000
 TAIL = 0.25  # seconds the voice should end before the cut
+CLIP_LEVEL = -20.0  # LUFS; every clip is leveled here first, so separate requests don't jump in level
 
 # Spoken forms go to the TTS engine only. The plan and the script keep the written form.
 SPOKEN_FORMS = {"196": "a hundred and ninety-six"}
@@ -231,21 +232,33 @@ def mix_in(track, samples, t0):
         track[off + i] = 32767 if v > 32767 else -32768 if v < -32768 else v
 
 
-def loudnorm(src, dst, target):
-    """Two-pass linear loudness normalization; returns the measured input loudness."""
-    first = f"loudnorm=I={target}:TP=-1.5:LRA=11:print_format=json"
-    probe = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(src), "-af", first, "-f", "null", "-"],
+def loudness(path):
+    """Integrated loudness of a file in LUFS (EBU R128)."""
+    probe = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", str(path), "-af", "ebur128", "-f", "null", "-"],
                            capture_output=True, text=True)
-    m = re.search(r"\{[^{}]*\"input_i\"[^{}]*\}", probe.stderr, re.S)
-    if not m:
-        fail("loudness measurement failed:\n" + probe.stderr[-800:])
-    meas = json.loads(m.group(0))
-    second = (f"loudnorm=I={target}:TP=-1.5:LRA=11:measured_I={meas['input_i']}:measured_TP={meas['input_tp']}:"
-              f"measured_LRA={meas['input_lra']}:measured_thresh={meas['input_thresh']}:"
-              f"offset={meas['target_offset']}:linear=true")
-    run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-af", second,
+    found = re.findall(r"I:\s+(-?\d+(?:\.\d+)?) LUFS", probe.stderr)
+    if not found:
+        fail(f"could not measure the loudness of {path}:\n{probe.stderr[-400:]}")
+    return float(found[-1])
+
+
+def leveled(samples, lufs):
+    gain = 10 ** ((CLIP_LEVEL - lufs) / 20)
+    return array.array("h", (max(-32768, min(32767, round(v * gain))) for v in samples))
+
+
+def normalize(src, dst, target):
+    """Linear gain to the loudness target, then a lookahead peak limiter at -1.5 dBFS.
+
+    loudnorm is not used: TTS peaks are high for its loudness, so loudnorm's linear mode
+    falls back to dynamic mode, which rides the gain and makes the first seconds louder.
+    """
+    gain = target - loudness(src)
+    limit = 10 ** (-1.5 / 20)
+    run(["ffmpeg", "-v", "error", "-y", "-i", str(src), "-af",
+         f"volume={gain:.2f}dB,alimiter=limit={limit:.4f}:attack=5:release=50:level=false:latency=true",
          "-ar", str(RATE), "-ac", "1", "-c:a", "pcm_s16le", str(dst)])
-    return meas
+    return {"gain_db": round(gain, 2), "output_lufs": loudness(dst)}
 
 
 def transcribe(path):
@@ -335,11 +348,13 @@ def main():
             clip = out / "clips" / f"{shot['id']}-{n}-{digest}.wav"
             if not clip.exists():
                 to_clip(synthesize(args, text, prev_text, next_text), clip)
-            samples = read_samples(clip)
+            clip_lufs = loudness(clip)
+            samples = leveled(read_samples(clip), clip_lufs)
             dur = len(samples) / RATE
             mix_in(track, samples, t)
             rec = {"shot": shot["id"], "segment": n, "text": val, "spoken": text,
-                   "start": round(t, 3), "end": round(t + dur, 3), "seconds": round(dur, 3), "clip": clip.name}
+                   "start": round(t, 3), "end": round(t + dur, 3), "seconds": round(dur, 3), "clip": clip.name,
+                   "clip_lufs": clip_lufs}
             if not args.no_word_check:
                 heard_file = clip.with_suffix(".heard.txt")
                 if not heard_file.exists():
@@ -357,7 +372,7 @@ def main():
 
     raw = out / "timeline.raw.wav"
     write_wav(raw, track)
-    meas = loudnorm(raw, out / "timeline.wav", args.loudness)
+    level = normalize(raw, out / "timeline.wav", args.loudness)
     raw.unlink()
     run(["ffmpeg", "-v", "error", "-y", "-i", str(out / "timeline.wav"), "-c:a", "aac", "-b:a", "160k",
          str(out / "timeline.m4a")])
@@ -369,14 +384,16 @@ def main():
     mismatched = [r for r in records if r.get("differences")]
     (out / "segments.json").write_text(json.dumps({
         "engine": args.engine, "model": model_id, "voice": args.voice, "settings": settings(args),
-        "loudness_target": args.loudness, "measured_input": meas, "segments": records}, indent=2) + "\n")
+        "clip_level": CLIP_LEVEL, "loudness_target": args.loudness, "loudness": level,
+        "segments": records}, indent=2) + "\n")
 
     lines = [f"# Narration take: {args.engine} · {args.voice}", "",
              f"Built {datetime.date.today().isoformat()} by `tools/narrate.py` from `{args.plan}`.", "",
              "| Setting | Value |", "|---|---|",
              f"| Engine | {name} (`{model_id}`) |", f"| Voice | {args.voice} |",
              f"| Settings | {json.dumps(settings(args))} |",
-             f"| Loudness | {args.loudness:g} LUFS integrated, two-pass linear, true peak −1.5 dBTP |", "",
+             f"| Loudness | Clips leveled to {CLIP_LEVEL:g} LUFS each; track gain {level['gain_db']:+.1f} dB to "
+             f"{level['output_lufs']:g} LUFS, peaks limited at −1.5 dBFS |", "",
              f"Speech: {total_speech:.1f} s for {total_words} words ({wpm:.0f} words per minute).", "",
              "| Shot | Slot | Voice in | Voice out | Speech | Words | Slack before the cut |", "|---|---|---|---|---|---|---|"]
     for r in rows:

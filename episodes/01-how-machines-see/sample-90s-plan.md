@@ -168,16 +168,16 @@ A small `ink-2` label at the bottom left: "Illustration · …", "Measured · ch
 
 ### Voice takes (2026-09-28)
 
-Six takes of the same narration, each a full 90-second track at −16 LUFS. Every clip passed the word check (ElevenLabs Scribe v2 transcript against the text). "Tight shots" are shots where the voice ends less than 0.25 s before the cut.
+Six takes of the same narration, each a full 90-second track. Every clip is leveled to the same loudness, and each track sits at about −16 LUFS. Every clip passed the word check (ElevenLabs Scribe v2 transcript against the text). "Tight shots" are shots where the voice ends less than 0.25 s before the cut.
 
 | Take | Engine | Voice | Pace | Tight shots |
 |---|---|---|---|---|
-| `elevenlabs-george` | ElevenLabs Multilingual v2, speed 1.0 | George (male, British) | 193 wpm | none |
+| `elevenlabs-george` | ElevenLabs Multilingual v2, speed 1.0 | George | 193 wpm | none |
 | `elevenlabs-george-0.9` | ElevenLabs Multilingual v2, speed 0.9 | George | 166 wpm | S1 (0.1 s) |
-| `elevenlabs-matilda` | ElevenLabs Multilingual v2, speed 1.0 | Matilda (female, American) | 186 wpm | none |
+| `elevenlabs-matilda` | ElevenLabs Multilingual v2, speed 1.0 | Matilda | 186 wpm | none |
 | `elevenlabs-matilda-0.9` | ElevenLabs Multilingual v2, speed 0.9 | Matilda | 174 wpm | none |
-| `gemini-charon` | Gemini 3.8 Flash TTS, style instructions | Charon (male) | 156 wpm | S1 (−0.1 s), S7 (0.0 s) |
-| `minimax-graceful-lady` | MiniMax Speech 2.8 HD, speed 1.0 | English_Graceful_Lady (female) | 141 wpm | S1, S2, S4, S5, S7 (−0.9 to 0.1 s) |
+| `gemini-charon` | Gemini 3.8 Flash TTS, style instructions | Charon | 156 wpm | S1 (−0.1 s), S7 (0.0 s) |
+| `minimax-graceful-lady` | MiniMax Speech 2.8 HD, speed 1.0 | English_Graceful_Lady | 141 wpm | S1, S2, S4, S5, S7 (−0.9 to 0.1 s) |
 
 - All three engines run through fal. fal's model catalog lists each of them with a commercial license, and fal's terms say the model providers' own terms may also apply.
 - S6 dropped "One recipe, applied 196 times." Every take overran S6 with it: the number alone is five spoken words ("a hundred and ninety-six").
