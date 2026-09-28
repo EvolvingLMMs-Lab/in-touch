@@ -39,7 +39,7 @@ Eight shots. The durations add up to 90 seconds.
 
 Times in parentheses are silences. A marker at the start of a shot is the wait before the voice comes in; a marker inside a line is a pause. [`tools/narrate.py`](../../tools/narrate.py) reads this block and the cut table to build the voice track.
 
-> **S1.** *(1 s)* Look at this small square. Can you tell what it is? *(pause, 1.5 s)* A curve. A bit of blue, a bit of white. Maybe a shadow.
+> **S1.** *(1 s)* Look at this small square. Can you tell what it is? *(pause, 1.3 s)* A curve. A bit of blue, a bit of white. Maybe a shadow.
 >
 > **S2.** *(0.5 s)* Now let the rest of the picture back in. *(the rings return, 3 s)* It's the rim of a cup. Nothing inside that square changed. What changed is everything around it.
 >
@@ -164,7 +164,13 @@ A small `ink-2` label at the bottom left: "Illustration · …", "Measured · ch
 - **Motif.** A short series motif of about four notes. It changes timbre with each sense in later episodes. The sample uses it twice: its first statement in S3, and a variation with a grainy texture that resolves in S7 and rings out in S8.
 - **Effects only on state changes.** Ring returns, the image lifting out, the snap to pixels, slicing, the vector forming, the query, and the merge. Never one sound per token.
 - **Mix.** The narration must be clear on laptop speakers. Music ducks about 8–10 dB under the voice. Master to −14 LUFS integrated, true peak at or below −1 dBTP.
-- **Voice.** A synthetic voice (decided 2026-09-28). [`tools/narrate.py`](../../tools/narrate.py) builds the voice track from the Narration block: one clip per segment, trimmed, placed on the cut, loudness-matched, and checked word for word with speech-to-text. To change a line, edit the Narration block and rebuild; unchanged clips come from the cache.
+- **Voice.** A synthetic voice: ElevenLabs Multilingual v2 through fal, voice George, speed 0.9, stability 0.5, similarity boost 0.75, style 0. Brian picked it on 2026-09-28 from the takes below. [`tools/narrate.py`](../../tools/narrate.py) builds the voice track from the Narration block: one clip per segment, trimmed, placed on the cut, loudness-matched, and checked word for word with speech-to-text. To change a line, edit the Narration block and rebuild; unchanged clips come from the cache.
+
+  ```
+  python3 tools/narrate.py --plan episodes/01-how-machines-see/sample-90s-plan.md \
+      --engine elevenlabs --voice George --speed 0.9 \
+      --out episodes/01-how-machines-see/sample/audio/narration/elevenlabs-george-0.9
+  ```
 
 ### Voice takes (2026-09-28)
 
@@ -173,15 +179,15 @@ Six takes of the same narration, each a full 90-second track. Every clip is leve
 | Take | Engine | Voice | Pace | Tight shots |
 |---|---|---|---|---|
 | `elevenlabs-george` | ElevenLabs Multilingual v2, speed 1.0 | George | 193 wpm | none |
-| `elevenlabs-george-0.9` | ElevenLabs Multilingual v2, speed 0.9 | George | 166 wpm | S1 (0.1 s) |
+| `elevenlabs-george-0.9` (picked) | ElevenLabs Multilingual v2, speed 0.9 | George | 166 wpm | none |
 | `elevenlabs-matilda` | ElevenLabs Multilingual v2, speed 1.0 | Matilda | 186 wpm | none |
 | `elevenlabs-matilda-0.9` | ElevenLabs Multilingual v2, speed 0.9 | Matilda | 174 wpm | none |
-| `gemini-charon` | Gemini 3.8 Flash TTS, style instructions | Charon | 156 wpm | S1 (−0.1 s), S7 (0.0 s) |
-| `minimax-graceful-lady` | MiniMax Speech 2.8 HD, speed 1.0 | English_Graceful_Lady | 141 wpm | S1, S2, S4, S5, S7 (−0.9 to 0.1 s) |
+| `gemini-charon` | Gemini 3.8 Flash TTS, style instructions | Charon | 156 wpm | S1 (0.1 s), S7 (0.0 s) |
+| `minimax-graceful-lady` | MiniMax Speech 2.8 HD, speed 1.0 | English_Graceful_Lady | 141 wpm | S1, S2, S4, S5, S7 (−0.7 to 0.1 s) |
 
 - All three engines run through fal. fal's model catalog lists each of them with a commercial license, and fal's terms say the model providers' own terms may also apply.
 - S6 dropped "One recipe, applied 196 times." Every take overran S6 with it: the number alone is five spoken words ("a hundred and ninety-six").
-- Once a take is picked, record its engine, voice, and settings here. The files live under `sample/audio/narration/`, outside git.
+- Picked: `elevenlabs-george-0.9`. S1's pause was shortened from 1.5 s to 1.3 s, so this take now ends more than 0.25 s before the S1 cut. The files live under `sample/audio/narration/`, outside git.
 
 ## Build
 
@@ -231,7 +237,7 @@ Estimates are for one generalist animator plus a part-time composer.
 | Phase | Work | Exit criteria | Estimate |
 |---|---|---|---|
 | P0 · Lock | Lock the narration above. Sketch the machine-view composition. | Narration locked. | 0.5 day |
-| P1 · Animatic | The picked synthetic take as the voice track. Manim blockout at low quality with placeholder colors. Blender grey-box of the table and the machine camera. Cut to the voice track. | Runs 90 s ± 2 s. Every line has its visual. The silent beat is intact. Review with Brian: story and timing. | 1–2 days |
+| P1 · Animatic | The George take (`elevenlabs-george-0.9`) as the voice track. Manim blockout at low quality with placeholder colors. Blender grey-box of the table and the machine camera. Cut to the voice track. | Runs 90 s ± 2 s. Every line has its visual. The silent beat is intact. Review with Brian: story and timing. | 1–2 days |
 | P2 · Lookdev | Materials and light. Render the final machine-view still, and pick and test the rim patch. Three hero stills: the machine view, the wide world, and a close-up of the cup. Palette check on three Manim frames. | Brian approves the stills and palette. The still and the 224×224 input are locked, with hashes. | 2–3 days |
 | P3 · Build | Final Manim shots S1, S2, S4 (second half), and S5–S8. Blender shots S3 and S4 (first half). Handoffs A and B. | Both difference-blend checks pass. | 4–6 days |
 | P4 · Sound | Motif sketch, effects pass, and the final voice. Starts once P1 locks the timing and runs alongside P3. | Mixed to target loudness. | 2–3 days |
@@ -257,7 +263,7 @@ The sample passes when all of these hold:
 
 ## Open decisions
 
-1. **Narrator.** A synthetic voice (decided 2026-09-28). Pick one of the voice takes above; the picked take sets the final timing.
+1. **Narrator.** Decided 2026-09-28: a synthetic voice, ElevenLabs George at speed 0.9 (see Sound).
 2. **Music.** Commission the series motif now, or use a temporary track for the sample?
 3. **Large files.** Git LFS in this public repository, or external storage for `.blend` files, audio, and renders?
 4. **License.** The repository has none yet, so all rights are reserved by default. Choose one before accepting outside contributions.
