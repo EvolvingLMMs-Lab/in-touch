@@ -19,7 +19,8 @@ Engines, all served by fal (the key comes only from the FAL_KEY environment vari
   gemini      Gemini 3.8 Flash TTS         google/gemini-3.8-flash-tts
   minimax     MiniMax Speech 2.8 HD        fal-ai/minimax/speech-2.8-hd
 The word check transcribes every clip with ElevenLabs Scribe v2 (fal-ai/elevenlabs/speech-to-text/scribe-v2);
-skip it with --no-word-check.
+skip it with --no-word-check. The same model then times every word of the finished track for picture sync
+(words.json, tied to timeline.wav by its SHA-256); skip it with --no-word-timestamps.
 
 Config example (one take):
   --engine elevenlabs --voice George --speed 1.0
@@ -32,7 +33,7 @@ Usage:
       --out episodes/01-how-machines-see/sample/audio/narration/elevenlabs-george
 
 Outputs in --out: clips/ (one WAV per segment, cached by a hash of its request),
-timeline.wav and timeline.m4a (the full length of the cut), segments.json, and timing.md.
+timeline.wav and timeline.m4a (the full length of the cut), words.json, segments.json, and timing.md.
 Requires ffmpeg on PATH.
 """
 
@@ -269,6 +270,23 @@ def transcribe(path):
     return out["text"]
 
 
+def word_timestamps(out, wav_hash):
+    """Write words.json, the word timings of the finished track; reuse it while timeline.wav is unchanged."""
+    dest = out / "words.json"
+    if dest.exists():
+        old = json.loads(dest.read_text())
+        if isinstance(old, dict) and old.get("timeline_sha256") == wav_hash:
+            return len(old["words"])
+    uri = "data:audio/mp4;base64," + base64.b64encode((out / "timeline.m4a").read_bytes()).decode()
+    res = fal(ASR, {"audio_url": uri, "language_code": "en", "diarize": False, "tag_audio_events": False})
+    found = [{"text": w["text"], "start": w["start"], "end": w["end"]}
+             for w in res.get("words", []) if w.get("type", "word") == "word"]
+    if not found:
+        fail(f"{ASR} returned no word timestamps for {out / 'timeline.m4a'}")
+    dest.write_text(json.dumps({"timeline_sha256": wav_hash, "source": ASR, "words": found}, indent=1) + "\n")
+    return len(found)
+
+
 def words(text):
     return re.findall(r"[a-z0-9']+", text.lower().replace("’", "'").replace("-", " "))
 
@@ -309,6 +327,7 @@ def main():
     ap.add_argument("--style-exaggeration", type=float, default=0.0, help="elevenlabs style, 0-1")
     ap.add_argument("--loudness", type=float, default=-16.0, help="integrated loudness target, LUFS")
     ap.add_argument("--no-word-check", action="store_true", help="skip transcribing the clips")
+    ap.add_argument("--no-word-timestamps", action="store_true", help="skip timing the words of the finished track")
     args = ap.parse_args()
 
     if not shutil.which("ffmpeg"):
@@ -376,6 +395,9 @@ def main():
     raw.unlink()
     run(["ffmpeg", "-v", "error", "-y", "-i", str(out / "timeline.wav"), "-c:a", "aac", "-b:a", "160k",
          str(out / "timeline.m4a")])
+    wav_hash = hashlib.sha256((out / "timeline.wav").read_bytes()).hexdigest()
+    if not args.no_word_timestamps:
+        print(f"narrate: {word_timestamps(out, wav_hash)} word timestamps in {out / 'words.json'}")
 
     total_speech = sum(r["speech"] for r in rows)
     total_words = sum(r["words"] for r in rows)

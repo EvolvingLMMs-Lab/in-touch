@@ -14,6 +14,7 @@ size and composites each one through a full-frame buffer. The 50x zoom into sing
 Inputs (made by prep_still.py and tools/narrate.py; kept out of git):
   sample/frames/{world_wide_half,machine_view,model_input_224}.png, sample/frames/still.json
   sample/audio/narration/elevenlabs-george-0.9/{timeline.wav,words.json}
+  words.json must carry the SHA-256 of the current timeline.wav, or the render stops.
 
 Config example (constants below): TAKE = elevenlabs-george-0.9, W x H = 1920 x 1080, FPS = 30.
 
@@ -26,6 +27,7 @@ Writes sample/renders/sample-draft-1[-preview].mp4 (or PNG stills) and prints an
 """
 
 import argparse
+import hashlib
 import json
 import math
 import re
@@ -68,13 +70,17 @@ def fail(msg):
 
 for needed in [FRAMES / "still.json", TAKE / "words.json", TAKE / "timeline.wav"]:
     if not needed.exists():
-        fail(f"missing {needed}; run prep_still.py and tools/narrate.py first")
+        fail(f"missing {needed}; build the George take with tools/narrate.py and run prep_still.py first")
 
 STILL = json.loads((FRAMES / "still.json").read_text())
 RIM = (STILL["rim_patch"]["row"], STILL["rim_patch"]["col"])
 RIM_K = RIM[0] * N + RIM[1]
 CROP = STILL["crop"]
-WORDS = json.loads((TAKE / "words.json").read_text())
+WORDS_DOC = json.loads((TAKE / "words.json").read_text())
+if not isinstance(WORDS_DOC, dict) or WORDS_DOC.get("timeline_sha256") != hashlib.sha256(
+        (TAKE / "timeline.wav").read_bytes()).hexdigest():
+    fail(f"{TAKE / 'words.json'} does not match timeline.wav; rebuild the take with tools/narrate.py")
+WORDS = WORDS_DOC["words"]
 SHOTS, LENGTH = narrate.parse_plan(PLAN)
 SLOT = {s["id"]: (float(s["start"]), float(s["end"])) for s in SHOTS}
 SLOT["S8"] = (SLOT["S7"][1], float(LENGTH))

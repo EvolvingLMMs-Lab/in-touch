@@ -255,11 +255,17 @@ Total: about two to three weeks for one person, plus the composer.
 The P1 animatic exists: `sample/renders/sample-draft-1.mp4`, 90.0 s, 1920×1080, 30 fps, with the George voice track (outside git). Rebuild it from the repo root:
 
 ```
+uv venv --python 3.13 .venv
+uv pip install --python .venv/bin/python manim==0.21.0   # brings pycairo, numpy, and Pillow
+export FAL_KEY=...
+python3 tools/narrate.py --plan episodes/01-how-machines-see/sample-90s-plan.md \
+    --engine elevenlabs --voice George --speed 0.9 \
+    --out episodes/01-how-machines-see/sample/audio/narration/elevenlabs-george-0.9
 .venv/bin/python episodes/01-how-machines-see/sample/prep_still.py
 .venv/bin/python episodes/01-how-machines-see/sample/draft/render_draft.py
 ```
 
-Picture cues follow the voice track's word timestamps (ElevenLabs Scribe v2 through fal). The draft departs from this plan in four ways:
+Picture cues follow the word timestamps that `narrate.py` writes to `words.json` (ElevenLabs Scribe v2 through fal). The file carries the hash of `timeline.wav`, and the render stops if the two don't match, so a changed line can't leave the picture on old timings. The draft departs from this plan in four ways:
 
 - **World.** One AI-generated still (Nano Banana Pro through fal, seed 11) moved in 2.5D, in place of the Blender grey-box. The machine view is cropped 1:1 from the same still, so S2 → S3 stays continuous.
 - **Renderer.** A small pycairo script instead of Manim. Manim's Cairo renderer resizes every image to its on-screen size, which makes the 50× pixel zoom in S4 and the 196 moving patches in S5 impractical.
